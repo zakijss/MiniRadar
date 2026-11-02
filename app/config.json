@@ -1,0 +1,6 @@
+{
+	"label":	"MiniRadar",
+	"icon":	"/mnt/SDCARD/App/MiniRadar/icon.png",
+	"launch":	"launch.sh",
+	"description":	"Devices on your Wi-Fi, and Wake-on-LAN"
+}

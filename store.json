@@ -1,0 +1,16 @@
+{
+  "name": "MiniRadar",
+  "folder": "MiniRadar",
+  "desc": "Devices on your Wi-Fi, and Wake-on-LAN",
+  "repo": "zakijss/MiniRadar",
+  "license": "MIT",
+  "version": "__VERSION__",
+  "zip": "https://github.com/zakijss/MiniRadar/releases/download/v__VERSION__/miniradar-__VERSION__.zip",
+  "sha256": "__SHA256__",
+  "size": __SIZE__,
+  "strip": "App/",
+  "released": "__RELEASED__",
+  "facts": [
+    "Scans only the network the device is on."
+  ]
+}
