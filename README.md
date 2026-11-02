@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/hero.jpg" alt="A Miyoo Mini Plus standing next to a Wi-Fi router, listing network devices in MiniRadar" width="100%"></p>
+<p align="center"><img src="docs/hero.jpg" alt="Two Miyoo Mini Plus handhelds on stands beside a Wi-Fi router, listing network devices in MiniRadar" width="100%"></p>
 
 [![CI](https://github.com/zakijss/MiniRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/zakijss/MiniRadar/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/zakijss/MiniRadar)](https://github.com/zakijss/MiniRadar/releases)
@@ -13,7 +13,7 @@ The devices on your Wi-Fi network, and Wake-on-LAN, from a Miyoo Mini Plus. Part
 - **START** opens Settings: sort the devices by address, name or maker, and turn the port check off for quicker scans.
 
 
-<p align="center"><img src="docs/desk.jpg" alt="MiniRadar running on a Miyoo Mini Plus lying on a desk" width="100%"></p>
+<p align="center"><img src="docs/desk.jpg" alt="A white Miyoo Mini Plus on a stand next to a Wi-Fi router, listing network devices in MiniRadar" width="100%"></p>
 
 ## Using it
 
