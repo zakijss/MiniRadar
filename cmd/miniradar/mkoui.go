@@ -1,7 +1,7 @@
 //go:build ignore
 
 // mkoui writes oui.txt, the vendor table MiniRadar embeds: every 24-bit MAC
-// prefix (OUI) of about 200 vendors common on home networks, under a short
+// prefix (OUI) of about 180 vendors common on home networks, under a short
 // display name. The rest of the IEEE registry (some 39,000 prefixes, mostly
 // telecom and industrial makers) is left out to keep the app small.
 //

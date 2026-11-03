@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/hero.jpg" alt="Two Miyoo Mini Plus handhelds on stands beside a Wi-Fi router, listing network devices in MiniRadar" width="100%"></p>
+<p align="center"><img src="docs/hero.jpg" alt="Three Miyoo Mini Plus handhelds beside a Wi-Fi router, the middle one listing network devices in MiniRadar" width="100%"></p>
 
 [![CI](https://github.com/zakijss/MiniRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/zakijss/MiniRadar/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/zakijss/MiniRadar)](https://github.com/zakijss/MiniRadar/releases)
