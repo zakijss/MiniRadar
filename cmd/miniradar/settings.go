@@ -183,7 +183,7 @@ func (a *app) settings() {
 		a.cfg.step(row, step)
 		if err := saveSettings(a.dir, a.cfg); err != nil {
 			a.cfg = old
-			s.Notice(a.input, "Couldn't save", err.Error())
+			s.Notice(a.input, "Couldn't save", err.Error()+". Check that the card has free space.")
 		}
 	}
 }

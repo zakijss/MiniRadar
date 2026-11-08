@@ -35,8 +35,8 @@ func iface() string {
 }
 
 var (
-	errWiFiOff   = message("Wi-Fi is off. Turn it on in Settings, then press X.")
-	errNoAddress = message("Wi-Fi isn't connected to a network yet. Press X to try again.")
+	errWiFiOff   = message("Wi-Fi is off. Turn it on in the main menu's Settings, then try again.")
+	errNoAddress = message("Wi-Fi isn't connected to a network yet. Try again in a moment.")
 )
 
 // localSubnet reads the Wi-Fi interface's IPv4 address and mask.

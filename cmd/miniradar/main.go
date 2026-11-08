@@ -54,7 +54,7 @@ func main() {
 	}()
 	a.devices, err = loadDevices(a.dir)
 	if err != nil {
-		scr.Notice(a.input, "Saved devices unreadable", err.Error())
+		scr.Notice(a.input, "Saved devices unreadable", err.Error()+"\n\nFix devices.json in the app's folder first: saving a device now replaces it.")
 	}
 	a.startScan()
 	a.run()
@@ -64,6 +64,9 @@ func main() {
 type message string
 
 func (m message) Error() string { return string(m) }
+
+// tryAgain ends a notice whose error is raw, so it says what to do next.
+const tryAgain = "\n\nTry again."
 
 func (a *app) poke() {
 	select {
@@ -398,7 +401,7 @@ func detailItems(h Host, p Progress) []ui.Item {
 	}
 	for _, port := range h.Ports {
 		sv := service(port)
-		items = append(items, ui.Item{Label: sv.Name, Detail: fmt.Sprintf("port %d open", port)})
+		items = append(items, ui.Item{Label: sv.Name, Detail: fmt.Sprintf("Port %d open", port)})
 	}
 	switch {
 	case p.SkipPorts:
@@ -493,7 +496,7 @@ func (a *app) wakeDevice(d Device) {
 		err = Wake(sub, mac)
 	}
 	if err != nil {
-		a.scr.Notice(a.input, "Couldn't send", err.Error())
+		a.scr.Notice(a.input, "Couldn't send", err.Error()+tryAgain)
 		return
 	}
 	a.note = "Sent " + d.Name + " a wake-up (to " + sub.Broadcast.String() + ")"
@@ -539,7 +542,7 @@ func (a *app) editDevice(i int, d Device) bool {
 		f.Delete = func() {
 			list := slices.Delete(slices.Clone(a.devices), i, i+1)
 			if err := saveDevices(a.dir, list); err != nil {
-				a.scr.Notice(a.input, "Couldn't remove it", err.Error())
+				a.scr.Notice(a.input, "Couldn't remove it", err.Error()+tryAgain)
 				return
 			}
 			a.devices, removed = list, true
