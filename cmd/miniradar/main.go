@@ -35,6 +35,10 @@ type app struct {
 	selIP   netip.Addr // keeps the same device selected as the list grows
 	devices []Device
 	note    string // a one-off message in the subtitle, until the next press
+
+	known    map[string]bool // MACs found before this session, upper case
+	seen     []string        // seen.json
+	recorded *Scan           // the last scan added to seen.json
 }
 
 func main() {
@@ -47,6 +51,11 @@ func main() {
 	defer scr.Close()
 	a := &app{scr: scr, input: ui.Input(), dir: appdir.Dir(), changed: make(chan struct{}, 1)}
 	a.cfg = loadSettings(a.dir)
+	a.seen = loadSeen(a.dir)
+	a.known = make(map[string]bool, len(a.seen))
+	for _, m := range a.seen {
+		a.known[m] = true
+	}
 	defer func() {
 		if a.cancel != nil {
 			a.cancel()
@@ -101,19 +110,23 @@ var listRect = image.Rect(20, 78, ui.W-26, ui.H-58)
 
 func (a *app) run() {
 	for {
+		a.recordSeen()
 		if a.wake {
 			a.drawWake()
 		} else {
 			a.drawHosts()
 		}
 		// While a scan runs, redraw five times a second (the progress bar
-		// and new devices) rather than on every find; when idle, wait.
+		// and new devices) rather than on every find; when idle, twice a
+		// minute, for the "scanned 3 minutes ago" stamp.
 		changed := a.changed
 		var tick <-chan time.Time
 		if a.wake {
 			changed = nil
 		} else if a.scanning() {
 			changed, tick = nil, time.After(200*time.Millisecond)
+		} else {
+			tick = time.After(30 * time.Second)
 		}
 		select {
 		case ev, ok := <-a.input:
@@ -184,7 +197,9 @@ func displayName(h Host) string {
 	return h.Addr.String()
 }
 
-func hostItem(h Host) ui.Item {
+// hostItem is one row of the device list; isNew marks a device no earlier
+// scan found.
+func hostItem(h Host, isNew bool) ui.Item {
 	label := displayName(h)
 	parts := []string{h.Addr.String()}
 	if label == h.Addr.String() {
@@ -198,6 +213,9 @@ func hostItem(h Host) ui.Item {
 	}
 	if len(parts) == 0 {
 		parts = append(parts, h.MAC)
+	}
+	if isNew {
+		parts = append([]string{"New"}, parts...)
 	}
 	icon := "server"
 	switch {
@@ -223,7 +241,7 @@ func (a *app) drawHosts() {
 	if a.scan != nil {
 		hosts, p = a.hosts(), a.scan.Progress()
 	}
-	sub := fmt.Sprintf("Your network %s · %s", a.scanLabel(), plural(len(hosts), "device"))
+	sub := fmt.Sprintf("%s on %s · %s", plural(len(hosts), "device"), a.scanLabel(), ago(time.Since(p.Started.Add(p.Took))))
 	if p.Phase != phaseDone {
 		sub = "Scanning your network " + a.scanLabel()
 	}
@@ -238,7 +256,7 @@ func (a *app) drawHosts() {
 	}
 	items := make([]ui.Item, len(hosts))
 	for i, h := range hosts {
-		items[i] = hostItem(h)
+		items[i] = hostItem(h, a.isNew(h))
 		if h.Addr == a.selIP {
 			a.hostL.Sel = i
 		}
@@ -252,6 +270,18 @@ func (a *app) drawHosts() {
 	}
 	a.hostL.Draw(s, r)
 	s.Present()
+}
+
+// ago says how long ago a scan ended, to the minute, short enough to fit
+// the subtitle beside the network.
+func ago(d time.Duration) string {
+	switch {
+	case d < time.Minute:
+		return "just now"
+	case d < time.Hour:
+		return fmt.Sprintf("%d min ago", int(d.Minutes()))
+	}
+	return fmt.Sprintf("%d h ago", int(d.Hours()))
 }
 
 func plural(n int, what string) string {
@@ -297,7 +327,43 @@ func (a *app) selectedHost() (Host, bool) {
 	if a.scan == nil || !a.selIP.IsValid() {
 		return Host{}, false
 	}
-	return a.scan.Host(a.selIP)
+	return a.host(a.selIP)
+}
+
+// host is the scanned device at addr, under the name it's saved as for
+// Wake if it is.
+func (a *app) host(addr netip.Addr) (Host, bool) {
+	h, ok := a.scan.Host(addr)
+	return a.savedName(h), ok
+}
+
+// savedName gives h the name its MAC is saved under for Wake, if any: the
+// name you chose beats what the device calls itself.
+func (a *app) savedName(h Host) Host {
+	if h.MAC == "" {
+		return h
+	}
+	for _, d := range a.devices {
+		if d.Name != "" && strings.EqualFold(d.MAC, h.MAC) {
+			h.Name, h.NameFrom = d.Name, "saved"
+			break
+		}
+	}
+	return h
+}
+
+// jump moves l to its first (L2) or last (R2) row; it reports whether ev
+// was one of those.
+func jump(l *ui.List, ev ui.Event) bool {
+	switch ev.Button {
+	case ui.L2:
+		l.Sel = 0
+	case ui.R2:
+		l.Sel = max(0, len(l.Items)-1)
+	default:
+		return false
+	}
+	return true
 }
 
 func (a *app) hostKey(ev ui.Event) {
@@ -313,7 +379,7 @@ func (a *app) hostKey(ev ui.Event) {
 			a.saveHost(h)
 		}
 	default:
-		if a.hostL.Handle(ev) {
+		if jump(&a.hostL, ev) || a.hostL.Handle(ev) {
 			if it := a.hostL.Selected(); it != nil && a.scan != nil {
 				if hs := a.hosts(); a.hostL.Sel < len(hs) {
 					a.selIP = hs[a.hostL.Sel].Addr
@@ -329,7 +395,7 @@ func (a *app) details(addr netip.Addr) {
 	s := a.scr
 	var l ui.List
 	for {
-		h, _ := a.scan.Host(addr)
+		h, _ := a.host(addr)
 		p := a.scan.Progress()
 		hints := []ui.Hint{{Button: "Y", Label: "Save for Wake"}, {Button: "B", Label: "Back"}}
 		if h.MAC == "" || h.Self {
@@ -368,7 +434,9 @@ func (a *app) details(addr netip.Addr) {
 					a.saveHost(h)
 				}
 			default:
-				l.Handle(ev)
+				if !jump(&l, ev) {
+					l.Handle(ev)
+				}
 			}
 		case <-changed:
 		case <-tick:
@@ -448,13 +516,24 @@ func (a *app) drawWake() {
 	}
 	top := s.StaticFrame("Wake", sub,
 		ui.Hint{Button: "A", Label: "Wake"}, ui.Hint{Button: "Y", Label: "Edit"}, ui.Hint{Button: "L1", Label: "Devices"}, settingsHint, ui.Hint{Button: "B", Label: "Exit"})
+	// which saved devices the last scan found awake
+	awake := map[string]bool{}
+	if a.scan != nil {
+		for _, h := range a.scan.Hosts() {
+			awake[strings.ToUpper(h.MAC)] = h.MAC != ""
+		}
+	}
 	items := make([]ui.Item, 0, len(a.devices)+1)
 	for _, d := range a.devices {
 		sub := d.MAC
 		if v := vendorOf(d.MAC); v != "" {
 			sub += " · " + v
 		}
-		items = append(items, ui.Item{Label: d.Name, Sub: sub, Icon: "server"})
+		it := ui.Item{Label: d.Name, Sub: sub, Icon: "server"}
+		if awake[strings.ToUpper(d.MAC)] {
+			it.Detail = "Awake"
+		}
+		items = append(items, it)
 	}
 	items = append(items, ui.Item{Label: "Add a device", Sub: "By its MAC address, or Y on a scanned one", Icon: "plus", Chevron: true})
 	a.wakeL.Items = items
@@ -481,7 +560,9 @@ func (a *app) wakeKey(ev ui.Event) {
 			a.editDevice(i, a.devices[i])
 		}
 	default:
-		a.wakeL.Handle(ev)
+		if !jump(&a.wakeL, ev) {
+			a.wakeL.Handle(ev)
+		}
 	}
 }
 

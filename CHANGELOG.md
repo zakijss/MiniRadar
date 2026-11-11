@@ -6,6 +6,14 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Devices no earlier scan found are marked New. The MAC addresses scans find are kept in seen.json, at most 512.
+- A device saved for Wake is listed under its saved name.
+- The Wake tab shows Awake beside saved devices the last scan found.
+- The Devices subtitle says how long ago the scan ended.
+- L2 and R2 jump to the top and bottom of a list.
+
 ## [1.0.2] - 2026-11-08
 
 ### Changed

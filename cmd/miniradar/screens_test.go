@@ -63,5 +63,7 @@ func TestScreens(t *testing.T) {
 		a.scan.prog.SkipPorts = true
 		a.details(netip.MustParseAddr("192.168.1.41"))
 	})
-	shot("wake", &app{wake: true, devices: []Device{{Name: "Gaming PC", MAC: "3C:7C:3F:12:AB:9E"}, {Name: "NAS", MAC: "B8:27:EB:01:02:03"}}}, (*app).drawWake)
+	shot("devices-new-saved", &app{known: map[string]bool{"A0:04:60:11:22:33": true}, scan: scan(phaseDone, 0),
+		devices: []Device{{Name: "Gaming PC", MAC: "3C:7C:3F:12:AB:9E"}}}, (*app).drawHosts)
+	shot("wake", &app{wake: true, scan: scan(phaseDone, 0), devices: []Device{{Name: "Gaming PC", MAC: "3C:7C:3F:12:AB:9E"}, {Name: "NAS", MAC: "B8:27:EB:01:02:03"}}}, (*app).drawWake)
 }

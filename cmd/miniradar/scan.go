@@ -20,7 +20,7 @@ type Host struct {
 	MAC      string
 	Vendor   string
 	Name     string
-	NameFrom string // "mDNS", "NetBIOS" or "DNS"
+	NameFrom string // "mDNS", "NetBIOS" or "DNS"; "saved" for a name saved for Wake
 	Ports    []int  // open, sorted
 	Ping     bool   // answered ping
 	Self     bool   // this Miyoo

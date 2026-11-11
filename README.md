@@ -17,7 +17,11 @@ The devices on your Wi-Fi network, and Wake-on-LAN, from a Miyoo Mini Plus. Part
 
 ## Using it
 
-It scans the network the Miyoo is on (up to 254 addresses). The wake list is kept in `App/MiniRadar/devices.json`, and Settings in `settings.json` beside it.
+It scans the network the Miyoo is on (up to 254 addresses) when it opens. **X** scans again, **A** opens a device, **Y** saves it for Wake, **L1** and **R1** switch between Devices and Wake, and **L2** and **R2** jump to the top and bottom of a list. On the Wake tab, **A** wakes a device and **Y** edits it.
+
+The subtitle says how long ago the last scan ended. A device saved for Wake is listed under its saved name, and shows Awake on the Wake tab when the last scan found it. A device no scan found before is marked New until you next open the app.
+
+The wake list is kept in `App/MiniRadar/devices.json`, Settings in `settings.json` beside it, and the devices earlier scans found (MAC addresses only, at most 512) in `seen.json`.
 
 ## Install
 

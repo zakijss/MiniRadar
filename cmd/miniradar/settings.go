@@ -93,12 +93,16 @@ func sortHosts(hosts []Host, by string) {
 	}
 }
 
-// hosts returns the devices found so far, in the order Settings picks.
+// hosts returns the devices found so far, under their saved names, in
+// the order Settings picks.
 func (a *app) hosts() []Host {
 	if a.scan == nil {
 		return nil
 	}
 	hs := a.scan.Hosts()
+	for i := range hs {
+		hs[i] = a.savedName(hs[i])
+	}
 	sortHosts(hs, a.cfg.Sort)
 	return hs
 }
