@@ -6,6 +6,8 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-12
+
 ### Added
 
 - Devices no earlier scan found are marked New. The MAC addresses scans find are kept in seen.json, at most 512.
@@ -36,7 +38,8 @@ All notable changes are listed here. The format follows
 
 - The first release: a device scan with makers and open ports, Wake-on-LAN, and Settings to sort the devices (address, name or maker) and turn the port check off.
 
-[Unreleased]: https://github.com/zakijss/MiniRadar/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/zakijss/MiniRadar/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/zakijss/MiniRadar/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/zakijss/MiniRadar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/zakijss/MiniRadar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/zakijss/MiniRadar/releases/tag/v1.0.0
