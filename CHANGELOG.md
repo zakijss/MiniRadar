@@ -6,6 +6,20 @@ All notable changes are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-19
+
+### Added
+
+- The Wake tab says when a scan last saw each saved device ("Seen 3 h ago"), and devices.json keeps the address it was last found at.
+
+### Changed
+
+- Scans start at most a few hundred probes a second, besides the cap on probes open at once, so they never flood the Wi-Fi.
+
+### Fixed
+
+- A scan that ended while the Wake tab was open now shows Awake at once, and is kept in seen.json even when you exit straight after.
+
 ## [1.1.1] - 2026-11-12
 
 ### Changed
@@ -44,7 +58,8 @@ All notable changes are listed here. The format follows
 
 - The first release: a device scan with makers and open ports, Wake-on-LAN, and Settings to sort the devices (address, name or maker) and turn the port check off.
 
-[Unreleased]: https://github.com/zakijss/MiniRadar/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/zakijss/MiniRadar/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/zakijss/MiniRadar/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/zakijss/MiniRadar/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/zakijss/MiniRadar/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/zakijss/MiniRadar/compare/v1.0.1...v1.0.2
