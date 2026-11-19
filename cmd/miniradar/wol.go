@@ -98,6 +98,8 @@ type Device struct {
 	Name string `json:"name"`
 	MAC  string `json:"mac"`
 	IP   string `json:"ip,omitempty"` // where a scan last saw it (for reference)
+	// Seen is when a scan last found it.
+	Seen time.Time `json:"seen,omitzero"`
 }
 
 // loadDevices reads devices.json; a missing file is an empty list.

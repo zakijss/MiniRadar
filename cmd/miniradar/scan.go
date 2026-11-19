@@ -77,6 +77,12 @@ const (
 	portTimeout = 700 * time.Millisecond
 	nameWorkers = 32
 	nameTimeout = 1500 * time.Millisecond
+	// The fastest a phase starts probes: the worker caps bound how many are
+	// open at once, these how quickly they go out, so a scan never floods
+	// the Wi-Fi (each new address also costs a broadcast ARP request).
+	findPace = 2 * time.Millisecond
+	portPace = time.Millisecond
+	namePace = 2 * time.Millisecond
 )
 
 // Scan discovers the devices on sub. Start runs it in the background;
@@ -215,7 +221,7 @@ func (s *Scan) run(ctx context.Context) {
 	// for the address), and a ping each if raw sockets are allowed.
 	s.setPhase(phaseFind, len(addrs))
 	pg := startPing(addrs, func(a netip.Addr) { s.update(a, func(h *Host) { h.Ping = true }) })
-	parallel(ctx, len(addrs), findWorkers, func(i int) {
+	parallel(ctx, len(addrs), findWorkers, findPace, func(i int) {
 		if up, open := probe(ctx, addrs[i], findPort, findTimeout); up {
 			s.update(addrs[i], func(h *Host) {
 				if open && !s.SkipPorts && !slices.Contains(h.Ports, findPort) {
@@ -240,7 +246,7 @@ func (s *Scan) run(ctx context.Context) {
 	if !s.SkipPorts {
 		found := s.addrs()
 		s.setPhase(phasePorts, len(found)*len(services))
-		parallel(ctx, len(found)*len(services), portWorkers, func(i int) {
+		parallel(ctx, len(found)*len(services), portWorkers, portPace, func(i int) {
 			a, p := found[i/len(services)], services[i%len(services)].Port
 			if _, open := probe(ctx, a, p, portTimeout); open {
 				s.update(a, func(h *Host) {
@@ -261,7 +267,7 @@ func (s *Scan) run(ctx context.Context) {
 	// 3. Names: mDNS, NetBIOS and reverse DNS, all at once per device.
 	found := s.addrs()
 	s.setPhase(phaseNames, len(found))
-	parallel(ctx, len(found), nameWorkers, func(i int) {
+	parallel(ctx, len(found), nameWorkers, namePace, func(i int) {
 		if name, from := lookupName(ctx, found[i]); name != "" {
 			s.update(found[i], func(h *Host) { h.Name, h.NameFrom = name, from })
 		}
@@ -281,11 +287,13 @@ func probe(ctx context.Context, a netip.Addr, port int, timeout time.Duration) (
 	return errors.Is(err, syscall.ECONNREFUSED), false
 }
 
-// parallel runs fn(0..n-1) on up to workers goroutines, stopping early
-// when ctx ends.
-func parallel(ctx context.Context, n, workers int, fn func(i int)) {
+// parallel runs fn(0..n-1) on up to workers goroutines, starting at most
+// one every pace, stopping early when ctx ends.
+func parallel(ctx context.Context, n, workers int, pace time.Duration, fn func(i int)) {
 	var next atomic.Int64
 	var wg sync.WaitGroup
+	tick := time.NewTicker(pace)
+	defer tick.Stop()
 	for w := 0; w < min(n, workers); w++ {
 		wg.Add(1)
 		go func() {
@@ -293,6 +301,11 @@ func parallel(ctx context.Context, n, workers int, fn func(i int)) {
 			for ctx.Err() == nil {
 				i := int(next.Add(1) - 1)
 				if i >= n {
+					return
+				}
+				select {
+				case <-tick.C:
+				case <-ctx.Done():
 					return
 				}
 				fn(i)

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/netip"
 	"slices"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 // A scan's MACs go first, upper case and once each; older ones follow and
@@ -60,5 +63,37 @@ func TestSavedName(t *testing.T) {
 	}
 	if h := a.savedName(Host{MAC: "00:11:22:33:44:55", Name: "nas"}); h.Name != "nas" {
 		t.Errorf("an unsaved device renamed to %q", h.Name)
+	}
+}
+
+// A finished scan stamps when and where it found each device saved for
+// Wake, and keeps that in devices.json.
+func TestRecordSeenSaved(t *testing.T) {
+	dir := t.TempDir()
+	s := NewScan(Subnet{}, func() {})
+	addr := netip.MustParseAddr("192.168.1.12")
+	s.hosts[addr] = &Host{Addr: addr, MAC: "3c:7c:3f:12:ab:9e"}
+	s.prog.Phase = phaseDone
+	a := &app{dir: dir, scan: s, devices: []Device{{Name: "Gaming PC", MAC: "3C:7C:3F:12:AB:9E", IP: "192.168.1.5"}, {Name: "NAS", MAC: "00:11:22:33:44:55"}}}
+	a.recordSeen()
+	ds, err := loadDevices(dir)
+	if err != nil || len(ds) != 2 {
+		t.Fatalf("devices.json: %v %+v", err, ds)
+	}
+	if ds[0].Seen.IsZero() || ds[0].IP != "192.168.1.12" {
+		t.Errorf("found device: %+v", ds[0])
+	}
+	if !ds[1].Seen.IsZero() {
+		t.Errorf("device not found was stamped: %+v", ds[1])
+	}
+}
+
+// Probes start no faster than the pace, however many workers there are.
+func TestParallelPace(t *testing.T) {
+	start := time.Now()
+	var n atomic.Int64
+	parallel(context.Background(), 20, 8, 5*time.Millisecond, func(int) { n.Add(1) })
+	if d := time.Since(start); n.Load() != 20 || d < 90*time.Millisecond {
+		t.Errorf("%d probes in %v", n.Load(), d)
 	}
 }

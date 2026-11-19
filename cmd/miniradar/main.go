@@ -109,6 +109,7 @@ func (a *app) startScan() {
 var listRect = image.Rect(20, 78, ui.W-26, ui.H-58)
 
 func (a *app) run() {
+	defer a.recordSeen() // a scan that ended just before B is kept too
 	for {
 		a.recordSeen()
 		if a.wake {
@@ -116,15 +117,15 @@ func (a *app) run() {
 		} else {
 			a.drawHosts()
 		}
-		// While a scan runs, redraw five times a second (the progress bar
-		// and new devices) rather than on every find; when idle, twice a
-		// minute, for the "scanned 3 minutes ago" stamp.
+		// While a scan runs, redraw five times a second (the progress bar,
+		// new devices, Awake on the Wake tab) rather than on every find;
+		// when idle, twice a minute, for the "scanned 3 minutes ago" stamp.
 		changed := a.changed
 		var tick <-chan time.Time
-		if a.wake {
-			changed = nil
-		} else if a.scanning() {
+		if a.scanning() {
 			changed, tick = nil, time.After(200*time.Millisecond)
+		} else if a.wake {
+			changed = nil
 		} else {
 			tick = time.After(30 * time.Second)
 		}
@@ -280,8 +281,10 @@ func ago(d time.Duration) string {
 		return "just now"
 	case d < time.Hour:
 		return fmt.Sprintf("%d min ago", int(d.Minutes()))
+	case d < 48*time.Hour:
+		return fmt.Sprintf("%d h ago", int(d.Hours()))
 	}
-	return fmt.Sprintf("%d h ago", int(d.Hours()))
+	return fmt.Sprintf("%d days ago", int(d.Hours()/24))
 }
 
 func plural(n int, what string) string {
@@ -530,8 +533,11 @@ func (a *app) drawWake() {
 			sub += " · " + v
 		}
 		it := ui.Item{Label: d.Name, Sub: sub, Icon: "server"}
-		if awake[strings.ToUpper(d.MAC)] {
+		switch {
+		case awake[strings.ToUpper(d.MAC)]:
 			it.Detail = "Awake"
+		case !d.Seen.IsZero():
+			it.Detail = "Seen " + ago(time.Since(d.Seen))
 		}
 		items = append(items, it)
 	}
@@ -600,7 +606,7 @@ func (a *app) editDevice(i int, d Device) bool {
 		if err != nil {
 			return err
 		}
-		nd := Device{Name: strings.TrimSpace(name.Value), MAC: FormatMAC(m), IP: d.IP}
+		nd := Device{Name: strings.TrimSpace(name.Value), MAC: FormatMAC(m), IP: d.IP, Seen: d.Seen}
 		for j, o := range a.devices {
 			if j != i && strings.EqualFold(o.MAC, nd.MAC) {
 				return message("That MAC address is already saved as " + o.Name + ".")

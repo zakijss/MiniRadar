@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/zakijss/minideck/atomicfile"
 )
@@ -80,5 +81,19 @@ func (a *app) recordSeen() {
 	a.seen = mergeSeen(found, a.seen)
 	if err := saveSeen(a.dir, a.seen); err != nil {
 		log.Printf("seen: %v", err) // only New marks are lost: not worth a notice
+	}
+	// when and where the scan found each device saved for Wake
+	now, saw := time.Now(), false
+	for _, h := range a.scan.Hosts() {
+		for i, d := range a.devices {
+			if h.MAC != "" && strings.EqualFold(d.MAC, h.MAC) {
+				a.devices[i].Seen, a.devices[i].IP, saw = now, h.Addr.String(), true
+			}
+		}
+	}
+	if saw {
+		if err := saveDevices(a.dir, a.devices); err != nil {
+			log.Printf("devices: %v", err)
+		}
 	}
 }
