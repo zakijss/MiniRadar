@@ -1,5 +1,7 @@
 github.com/zakijss/minideck v1.1.0 h1:8x3J0vngVrz0dlipfn3ea1tGSt5HigNFfk3hTmTbPks=
 github.com/zakijss/minideck v1.1.0/go.mod h1:Wn5iyrXfOULQxhd0G4rQ/DnFZHAMCtbb6CVswkptnUM=
+github.com/zakijss/minideck v1.2.0 h1:FcX9Z7QI5zcTmIWWSsi6UeIus5UvodV5IW8VGqLnXIA=
+github.com/zakijss/minideck v1.2.0/go.mod h1:Wn5iyrXfOULQxhd0G4rQ/DnFZHAMCtbb6CVswkptnUM=
 golang.org/x/image v0.48.0 h1:1AvuPcuoOTJpA7s4VZ5umrb90T3So0rkB/bSGmxkxik=
 golang.org/x/image v0.48.0/go.mod h1:mmtg64iqJKGqEgy+r13dfybl85tmxUd2lMnmaiSdWYY=
 golang.org/x/net v0.62.0 h1:18ELalfM5+XNRwzM2nYqXsZQ9ByS1uhj2O/U7+5jqRY=
