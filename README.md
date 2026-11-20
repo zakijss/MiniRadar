@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/hero.jpg" alt="Three Miyoo Mini Plus handhelds beside a Wi-Fi router, the middle one listing network devices in MiniRadar" width="100%"></p>
+<p align="center"><img src="docs/hero.jpg" alt="A grey Miyoo Mini Plus on a stand on a sunlit window sill, listing network devices in MiniRadar, with a smoked black one and a white one lying beside it" width="100%"></p>
 
 [![CI](https://github.com/zakijss/MiniRadar/actions/workflows/ci.yml/badge.svg)](https://github.com/zakijss/MiniRadar/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/zakijss/MiniRadar)](https://github.com/zakijss/MiniRadar/releases)
@@ -12,7 +12,7 @@ The devices on your Wi-Fi network, and Wake-on-LAN, from a Miyoo Mini Plus. Part
 - Scans up to 254 addresses, a few hundred probes a second at most, so the Wi-Fi isn't flooded.
 - A list of computers to wake with Wake-on-LAN, added from a scan or by MAC address, each showing when a scan last saw it.
 
-<p align="center"><img src="docs/desk.jpg" alt="A white Miyoo Mini Plus on a stand next to a Wi-Fi router, listing network devices in MiniRadar" width="100%"></p>
+<p align="center"><img src="docs/desk.jpg" alt="A grey Miyoo Mini Plus on a stand on a sunlit window sill, listing network devices in MiniRadar, with a smoked black one beside it open at one device" width="100%"></p>
 
 ## Install
 
